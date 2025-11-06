@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini Games Collection</title>
+<style>
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: linear-gradient(to bottom, #87ceeb, #f0f8ff);
+  }
+  .screen {
+    display: none;
+    width: 90%;
+    max-width: 500px;
+    text-align: center;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    padding: 20px;
+  }
+  .screen.active { display: block; }
+  h1 { margin-top: 0; }
+  button {
+    padding: 10px 20px;
+    font-size: 18px;
+    margin: 10px;
+    cursor: pointer;
+    border: none;
+    border-radius: 10px;
+    background-color: #00bfff;
+    color: white;
+  }
+  button:hover { background-color: #009acd; }
+  .stats p { font-size: 18px; margin: 5px 0; }
+
+  /* Save Water Game Styles */
+  .sink-area { position: relative; height: 300px; margin: 20px 0; background: #ddd; border-radius: 20px; overflow: hidden; }
+  .sink { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); width: 80px; height: 50px; background: #999; border-radius: 10px; }
+  .toothbrush { position: absolute; bottom: 30px; left: 36%; transform: translateX(-50%); width: 140px; height: 20px; background: #ff6f61; border-radius: 10px; }
+  .bristles { position: absolute; top: -10px; right: 0; width: 30px; height: 10px; display: flex; justify-content: space-between; }
+  .bristle { width: 4px; height: 10px; background: #fff; border-radius: 2px; }
+  .water-drop { position: absolute; width: 6px; height: 6px; background: #00bfff; border-radius: 50%; top: 70px; left: 50%; transform: translateX(-50%); }
+
+  /* Rain Barrel Game Styles */
+  .rain-area { position: relative; height: 300px; margin: 20px 0; background: #87ceeb; overflow: hidden; border-radius: 20px; }
+  .barrel { position: absolute; bottom: 0; width: 60px; height: 40px; background: #654321; border-radius: 5px; left: 50%; transform: translateX(-50%); }
+  .raindrop { position: absolute; width: 8px; height: 8px; background: #00bfff; border-radius: 50%; }
+
+  /* Recycling Quiz Styles */
+  .recycle-item { font-size: 20px; margin: 10px 0; }
+  .quiz-buttons { margin: 20px 0; }
+  .feedback-container { display: flex; justify-content: center; align-items: center; margin: 10px 0; }
+  .feedback { font-size: 18px; }
+  #continueBtn { margin-left: 10px; }
+  .bottom-button { margin-top: 20px; }
+
+  /* Info Modal Styles */
+  .info-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.7);
+    z-index: 100;
+    justify-content: center;
+    align-items: center;
+  }
+  .info-modal.active {
+    display: flex;
+  }
+  .modal-content {
+    background-color: white;
+    padding: 25px;
+    border-radius: 15px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.3);
+  }
+  .modal-content h2 {
+    margin-top: 0;
+    color: #00bfff;
+  }
+  .modal-content h3 {
+    color: #009acd;
+    margin-bottom: 5px;
+  }
+  .modal-content p {
+    line-height: 1.5;
+    margin-bottom: 15px;
+  }
+  .close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+    background: none;
+    border: none;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .close-btn:hover {
+    color: #000;
+  }
+  
+  /* Home Screen Game Buttons */
+  .game-button-container {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    margin-bottom: 15px;
+  }
+  .game-button {
+    width: 100%;
+    margin-bottom: 5px;
+  }
+  .info-button {
+    background-color: #6c757d;
+    padding: 5px 10px;
+    font-size: 14px;
+    margin: 0;
+  }
+  .info-button:hover {
+    background-color: #5a6268;
+  }
+</style>
+</head>
+<body>
+
+<!-- Home Screen -->
+<div id="homeScreen" class="screen active">
+  <h1>Mini Games Collection</h1>
+  
+  <div class="game-button-container">
+    <button class="game-button" onclick="showGame('saveWater')">Save Water & Toothbrush Game</button>
+    <button class="info-button" onclick="showInfo('waterInfo')">ℹ️ How to Play</button>
+  </div>
+  
+  <div class="game-button-container">
+    <button class="game-button" onclick="showGame('rainBarrel')">Rain Barrel Game</button>
+    <button class="info-button" onclick="showInfo('rainInfo')">ℹ️ How to Play</button>
+  </div>
+  
+  <div class="game-button-container">
+    <button class="game-button" onclick="showGame('recyclingQuiz')">Recycling Quiz</button>
+    <button class="info-button" onclick="showInfo('recycleInfo')">ℹ️ How to Play</button>
+  </div>
+</div>
+
+<!-- Save Water Game -->
+<div id="saveWater" class="screen">
+  <h1>Save Water & Toothbrush!</h1>
+  <div class="sink-area">
+    <div class="sink"></div>
+    <div class="toothbrush">
+      <div class="bristles">
+        <div class="bristle"></div><div class="bristle"></div><div class="bristle"></div><div class="bristle"></div>
+      </div>
+    </div>
+  </div>
+  <button id="toggleButton">Turn On</button>
+  <div class="stats">
+    <p>Water Used: <span id="waterUsed">0.00</span> L</p>
+    <p>Best Water Usage: <span id="waterHighScore">0.00</span> L</p>
+  </div>
+  <button class="bottom-button" onclick="backHome()">Back to Home</button>
+</div>
+
+<!-- Rain Barrel Game -->
+<div id="rainBarrel" class="screen">
+  <h1>Rain Barrel</h1>
+  <div class="rain-area" id="rainArea">
+    <div class="barrel" id="barrel"></div>
+  </div>
+  <div>
+    <button id="resetRainButton">Reset</button>
+  </div>
+  <p class="stats">Water Collected: <span id="rainScore">0</span></p>
+  <p class="stats">High Score: <span id="rainHighScore">0</span></p>
+  <button class="bottom-button" onclick="backHome()">Back to Home</button>
+</div>
+
+<!-- Recycling Quiz -->
+<div id="recyclingQuiz" class="screen">
+  <h1>Recycling Quiz</h1>
+  <div class="recycle-item" id="recycleQuestion"></div>
+  <div class="quiz-buttons">
+    <button onclick="answerRecycle(true)">Recycle</button>
+    <button onclick="answerRecycle(false)">Trash</button>
+  </div>
+  <div class="feedback-container">
+    <div class="feedback" id="feedback"></div>
+    <button id="continueBtn" onclick="nextRecycleQuestion()">Continue</button>
+  </div>
+  <button class="bottom-button" onclick="backHome()">Back to Home</button>
+</div>
+
+<!-- Info Modals -->
+<div id="waterInfo" class="info-modal">
+  <div class="modal-content">
+    <button class="close-btn" onclick="hideInfo('waterInfo')">×</button>
+    <h2>Save Water & Toothbrush Game</h2>
+    
+    <h3>How to Play</h3>
+    <p>Click the "Turn On" button to start the water flow. Try to use as little water as possible while brushing your teeth. Click "Turn Off" when you're done to see how much water you used. Try to beat your best score!</p>
+    
+    <h3>Why This Helps the Environment</h3>
+    <p>Turning off the tap while brushing teeth can save up to 8 gallons of water per day! This simple habit conserves freshwater resources and reduces the energy needed to treat and pump water.</p>
+  </div>
+</div>
+
+<div id="rainInfo" class="info-modal">
+  <div class="modal-content">
+    <button class="close-btn" onclick="hideInfo('rainInfo')">×</button>
+    <h2>Rain Barrel Game</h2>
+    
+    <h3>How to Play</h3>
+    <p>Use the left and right arrow keys to move the barrel and catch as many raindrops as possible. Each raindrop you collect represents water saved for gardening and other outdoor uses.</p>
+    
+    <h3>Why This Helps the Environment</h3>
+    <p>Rain barrels collect rainwater that would otherwise run off into storm drains. This reduces water pollution from runoff and conserves treated drinking water for outdoor use. A single rain barrel can save about 1,300 gallons of water during peak summer months!</p>
+  </div>
+</div>
+
+<div id="recycleInfo" class="info-modal">
+  <div class="modal-content">
+    <button class="close-btn" onclick="hideInfo('recycleInfo')">×</button>
+    <h2>Recycling Quiz</h2>
+    
+    <h3>How to Play</h3>
+    <p>For each item shown, decide whether it should go in the recycling bin or the trash. You'll get feedback on your answers to help you learn proper recycling practices.</p>
+    
+    <h3>Why This Helps the Environment</h3>
+    <p>Proper recycling reduces landfill waste, conserves natural resources, saves energy, and reduces pollution. When we recycle correctly, we help create a circular economy where materials are reused instead of discarded.</p>
+  </div>
+</div>
+
+<script>
+/* Navigation with auto-reset */
+function showGame(gameId) {
+  // Auto-reset all games when leaving
+  resetSaveWater();
+  resetRainBarrel();
+  recycleIndex = 0;
+  showRecycleQuestion();
+
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(gameId).classList.add('active');
+}
+
+function backHome() {
+  showGame('homeScreen');
+}
+
+/* Info Modal Functions */
+function showInfo(modalId) {
+  document.getElementById(modalId).classList.add('active');
+}
+
+function hideInfo(modalId) {
+  document.getElementById(modalId).classList.remove('active');
+}
+
+// Close modal when clicking outside content
+document.querySelectorAll('.info-modal').forEach(modal => {
+  modal.addEventListener('click', function(e) {
+    if (e.target === this) {
+      this.classList.remove('active');
+    }
+  });
+});
+
+/* --- Save Water Game --- */
+const toggleButton = document.getElementById('toggleButton');
+const statsWater = document.getElementById('waterUsed');
+const statsWaterHigh = document.getElementById('waterHighScore');
+let waterOn = false, waterUsed = 0;
+const flowRate = 0.5, gravity = 3, bristleTop = 250, sinkTop = 70;
+const drops = [];
+let viewingScore = false;
+
+let waterHighScore = parseFloat(localStorage.getItem('waterHighScore')) || Infinity;
+statsWaterHigh.textContent = waterHighScore === Infinity ? '0.00' : waterHighScore.toFixed(2);
+
+toggleButton.addEventListener('click', () => {
+  if (!waterOn && !viewingScore) {
+    // Start the water
+    waterOn = true;
+    toggleButton.textContent = 'Turn Off';
+  } else if (waterOn && !viewingScore) {
+    // Stop the water and show score
+    waterOn = false;
+    viewingScore = true;
+    toggleButton.textContent = 'Reset';
+    
+    // Update high score if needed
+    if (waterUsed < waterHighScore) {
+      waterHighScore = waterUsed;
+      statsWaterHigh.textContent = waterHighScore.toFixed(2);
+      localStorage.setItem('waterHighScore', waterHighScore);
+    }
+  } else if (viewingScore) {
+    // Reset the game
+    resetSaveWater();
+  }
+});
+
+function createDrop() {
+  const drop = document.createElement('div');
+  drop.classList.add('water-drop');
+  drop.style.top = sinkTop + 'px';
+  drop.style.left = '50%';
+  document.querySelector('#saveWater .sink-area').appendChild(drop);
+  drops.push(drop);
+  waterUsed += flowRate * 0.05;
+  statsWater.textContent = waterUsed.toFixed(2);
+}
+
+function animateDrops() {
+  for (let i = drops.length-1;i>=0;i--){
+    const drop = drops[i];
+    let top = parseFloat(drop.style.top);
+    if(top + gravity < bristleTop) drop.style.top = top + gravity + 'px';
+    else { drop.style.opacity = 0; setTimeout(()=>drop.remove(),200); drops.splice(i,1);}
+  }
+  if(waterOn) createDrop();
+  requestAnimationFrame(animateDrops);
+}
+animateDrops();
+
+function resetSaveWater(){
+  waterOn = false;
+  waterUsed = 0;
+  statsWater.textContent = '0.00';
+  drops.forEach(d=>d.remove());
+  drops.length = 0;
+  toggleButton.textContent = 'Turn On';
+  viewingScore = false;
+}
+
+/* --- Rain Barrel Game --- */
+const barrel = document.getElementById('barrel');
+const rainArea = document.getElementById('rainArea');
+const resetRainButton = document.getElementById('resetRainButton');
+const rainScoreSpan = document.getElementById('rainScore');
+const rainHighSpan = document.getElementById('rainHighScore');
+
+let rainDrops = [], rainScore = 0;
+const dropSpeed = 3; 
+const dropInterval = 500;
+let rainHighScore = parseInt(localStorage.getItem('rainHighScore')) || 0;
+rainHighSpan.textContent = rainHighScore;
+
+function spawnRaindrop(){
+  const drop = document.createElement('div');
+  drop.classList.add('raindrop');
+  drop.style.left = Math.random()*(rainArea.clientWidth-8)+'px';
+  drop.style.top = '-10px';
+  rainArea.appendChild(drop);
+  rainDrops.push(drop);
+}
+
+function animateRain(){
+  for(let i=rainDrops.length-1;i>=0;i--){
+    const drop=rainDrops[i];
+    let top=parseFloat(drop.style.top);
+    drop.style.top=top+dropSpeed+'px';
+    let barrelRect=barrel.getBoundingClientRect();
+    let dropRect=drop.getBoundingClientRect();
+    if(dropRect.bottom>=barrelRect.top && dropRect.left>=barrelRect.left && dropRect.right<=barrelRect.right){
+      rainScore++;
+      rainScoreSpan.textContent=rainScore;
+      if(rainScore>rainHighScore){rainHighScore=rainScore; rainHighSpan.textContent=rainHighScore; localStorage.setItem('rainHighScore',rainHighScore);}
+      drop.remove(); rainDrops.splice(i,1);
+    } else if(top>rainArea.clientHeight){drop.remove(); rainDrops.splice(i,1);}
+  }
+  requestAnimationFrame(animateRain);
+}
+setInterval(spawnRaindrop, dropInterval);
+animateRain();
+
+document.addEventListener('keydown', e=>{
+  let left=parseInt(barrel.style.left)||50;
+  const moveStep=20;
+  if(e.key==='ArrowLeft') left=Math.max(0,left-moveStep);
+  if(e.key==='ArrowRight') left=Math.min(rainArea.clientWidth-60,left+moveStep);
+  barrel.style.left=left+'px';
+});
+
+resetRainButton.addEventListener('click', resetRainBarrel);
+
+function resetRainBarrel(){
+  rainScore=0;
+  rainScoreSpan.textContent='0';
+  rainDrops.forEach(d=>d.remove());
+  rainDrops=[];
+}
+
+/* --- Recycling Quiz --- */
+const recyclingItems=[
+  {item:'Plastic bottle', recycle:true, reason:'Plastic bottles go in recycling.'},
+  {item:'Banana peel', recycle:false, reason:'Banana peel is compostable, not recycling.'},
+  {item:'Aluminum can', recycle:true, reason:'Aluminum cans are recyclable.'},
+  {item:'Styrofoam cup', recycle:false, reason:'Styrofoam is not recyclable.'},
+  {item:'Glass jar', recycle:true, reason:'Glass jars go in recycling.'},
+  {item:'Used tissue', recycle:false, reason:'Tissues are trash, not recycling.'},
+  {item:'Cardboard box', recycle:true, reason:'Cardboard boxes go in recycling.'},
+  {item:'Plastic bag', recycle:false, reason:'Plastic bags usually cannot go in curbside recycling.'},
+  {item:'Tin can', recycle:true, reason:'Tin cans are recyclable.'},
+  {item:'Food wrapper', recycle:false, reason:'Food wrappers are trash.'},
+  {item:'Paper cup', recycle:true, reason:'Paper cups can often be recycled.'},
+  {item:'Pizza box with food', recycle:false, reason:'Contaminated pizza boxes are trash.'},
+  {item:'Glass bottle', recycle:true, reason:'Glass bottles go in recycling.'},
+  {item:'Ceramic mug', recycle:false, reason:'Ceramics are trash.'},
+  {item:'Newspaper', recycle:true, reason:'Newspapers go in recycling.'},
+  {item:'Clothes', recycle:false, reason:'Clothes should be donated or trashed.'},
+  {item:'Milk carton', recycle:true, reason:'Milk cartons can go in recycling.'},
+  {item:'Battery', recycle:false, reason:'Batteries require special disposal.'},
+  {item:'Aluminum foil', recycle:true, reason:'Clean aluminum foil can be recycled.'},
+  {item:'Pizza box without food', recycle:true, reason:'Clean cardboard is recyclable.'}
+];
+
+let recycleIndex=0;
+
+function showRecycleQuestion(){
+  if(recycleIndex>=recyclingItems.length){
+    document.getElementById('recycleQuestion').textContent='Quiz complete!';
+    document.getElementById('feedback').textContent='';
+    document.getElementById('continueBtn').style.display='none';
+    return;
+  }
+  document.getElementById('recycleQuestion').textContent=recyclingItems[recycleIndex].item;
+  document.getElementById('feedback').textContent='';
+  document.getElementById('continueBtn').style.display='none';
+}
+
+function answerRecycle(choice){
+  const correct=recyclingItems[recycleIndex].recycle;
+  const reason=recyclingItems[recycleIndex].reason;
+  if(choice===correct) document.getElementById('feedback').textContent='Correct!';
+  else document.getElementById('feedback').textContent='Wrong! '+reason;
+  document.getElementById('continueBtn').style.display='inline-block';
+}
+
+function nextRecycleQuestion(){
+  recycleIndex++;
+  showRecycleQuestion();
+}
+
+showRecycleQuestion();
+</script>
+</body>
+</html>
