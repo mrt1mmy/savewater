@@ -37,6 +37,10 @@
     color: white;
   }
   button:hover { background-color: #009acd; }
+  button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+  }
   .stats p { font-size: 18px; margin: 5px 0; }
 
   /* Save Water Game Styles */
@@ -49,7 +53,7 @@
 
   /* Rain Barrel Game Styles */
   .rain-area { position: relative; height: 300px; margin: 20px 0; background: #87ceeb; overflow: hidden; border-radius: 20px; }
-  .barrel { position: absolute; bottom: 0; width: 60px; height: 40px; background: #654321; border-radius: 5px; left: 50%; transform: translateX(-50%); }
+  .barrel { position: absolute; bottom: 0; width: 60px; height: 40px; background: #654321; border-radius: 5px; left: 50%; transform: translateX(-50%); transition: left 0.1s ease-out; }
   .raindrop { position: absolute; width: 8px; height: 8px; background: #00bfff; border-radius: 50%; }
 
   /* Recycling Quiz Styles */
@@ -59,6 +63,8 @@
   .feedback { font-size: 18px; }
   #continueBtn { margin-left: 10px; }
   .bottom-button { margin-top: 20px; }
+  .quiz-progress { font-size: 16px; margin-bottom: 10px; color: #666; }
+  .quiz-score { font-size: 22px; font-weight: bold; margin: 15px 0; color: #00bfff; }
 
   /* Info Modal Styles */
   .info-modal {
@@ -197,8 +203,9 @@
 <!-- Recycling Quiz -->
 <div id="recyclingQuiz" class="screen">
   <h1>Recycling Quiz</h1>
+  <div class="quiz-progress" id="quizProgress">Question 1 of 20</div>
   <div class="recycle-item" id="recycleQuestion"></div>
-  <div class="quiz-buttons">
+  <div class="quiz-buttons" id="quizButtons">
     <button onclick="answerRecycle(true)">Recycle</button>
     <button onclick="answerRecycle(false)">Trash</button>
   </div>
@@ -206,6 +213,7 @@
     <div class="feedback" id="feedback"></div>
     <button id="continueBtn" onclick="nextRecycleQuestion()">Continue</button>
   </div>
+  <div class="quiz-score" id="quizScore" style="display:none;"></div>
   <button class="bottom-button" onclick="backHome()">Back to Home</button>
 </div>
 
@@ -255,8 +263,7 @@ function showGame(gameId) {
   // Auto-reset all games when leaving
   resetSaveWater();
   resetRainBarrel();
-  recycleIndex = 0;
-  showRecycleQuestion();
+  resetRecyclingQuiz();
 
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(gameId).classList.add('active');
@@ -293,8 +300,13 @@ const flowRate = 0.5, gravity = 3, bristleTop = 250, sinkTop = 70;
 const drops = [];
 let viewingScore = false;
 
-let waterHighScore = parseFloat(localStorage.getItem('waterHighScore')) || Infinity;
-statsWaterHigh.textContent = waterHighScore === Infinity ? '0.00' : waterHighScore.toFixed(2);
+// Initialize high score with 0 if not set
+let waterHighScore = parseFloat(localStorage.getItem('waterHighScore'));
+if (isNaN(waterHighScore) || waterHighScore === Infinity) {
+  waterHighScore = 0;
+  localStorage.setItem('waterHighScore', waterHighScore);
+}
+statsWaterHigh.textContent = waterHighScore.toFixed(2);
 
 toggleButton.addEventListener('click', () => {
   if (!waterOn && !viewingScore) {
@@ -307,8 +319,8 @@ toggleButton.addEventListener('click', () => {
     viewingScore = true;
     toggleButton.textContent = 'Reset';
     
-    // Update high score if needed
-    if (waterUsed < waterHighScore) {
+    // Update high score if needed (only if it's better than 0)
+    if (waterUsed > 0 && (waterHighScore === 0 || waterUsed < waterHighScore)) {
       waterHighScore = waterUsed;
       statsWaterHigh.textContent = waterHighScore.toFixed(2);
       localStorage.setItem('waterHighScore', waterHighScore);
@@ -362,7 +374,14 @@ const rainHighSpan = document.getElementById('rainHighScore');
 let rainDrops = [], rainScore = 0;
 const dropSpeed = 3; 
 const dropInterval = 500;
-let rainHighScore = parseInt(localStorage.getItem('rainHighScore')) || 0;
+let barrelPosition = 50; // Initial position percentage
+
+// Initialize high score with 0 if not set
+let rainHighScore = parseInt(localStorage.getItem('rainHighScore'));
+if (isNaN(rainHighScore)) {
+  rainHighScore = 0;
+  localStorage.setItem('rainHighScore', rainHighScore);
+}
 rainHighSpan.textContent = rainHighScore;
 
 function spawnRaindrop(){
@@ -384,21 +403,33 @@ function animateRain(){
     if(dropRect.bottom>=barrelRect.top && dropRect.left>=barrelRect.left && dropRect.right<=barrelRect.right){
       rainScore++;
       rainScoreSpan.textContent=rainScore;
-      if(rainScore>rainHighScore){rainHighScore=rainScore; rainHighSpan.textContent=rainHighScore; localStorage.setItem('rainHighScore',rainHighScore);}
-      drop.remove(); rainDrops.splice(i,1);
-    } else if(top>rainArea.clientHeight){drop.remove(); rainDrops.splice(i,1);}
+      if(rainScore>rainHighScore){
+        rainHighScore=rainScore; 
+        rainHighSpan.textContent=rainHighScore; 
+        localStorage.setItem('rainHighScore',rainHighScore);
+      }
+      drop.remove(); 
+      rainDrops.splice(i,1);
+    } else if(top>rainArea.clientHeight){
+      drop.remove(); 
+      rainDrops.splice(i,1);
+    }
   }
   requestAnimationFrame(animateRain);
 }
 setInterval(spawnRaindrop, dropInterval);
 animateRain();
 
+// Smooth barrel movement
 document.addEventListener('keydown', e=>{
-  let left=parseInt(barrel.style.left)||50;
-  const moveStep=20;
-  if(e.key==='ArrowLeft') left=Math.max(0,left-moveStep);
-  if(e.key==='ArrowRight') left=Math.min(rainArea.clientWidth-60,left+moveStep);
-  barrel.style.left=left+'px';
+  const moveStep = 2; // Smaller step for smoother movement
+  if(e.key==='ArrowLeft') {
+    barrelPosition = Math.max(0, barrelPosition - moveStep);
+  }
+  if(e.key==='ArrowRight') {
+    barrelPosition = Math.min(100, barrelPosition + moveStep);
+  }
+  barrel.style.left = barrelPosition + '%';
 });
 
 resetRainButton.addEventListener('click', resetRainBarrel);
@@ -408,6 +439,8 @@ function resetRainBarrel(){
   rainScoreSpan.textContent='0';
   rainDrops.forEach(d=>d.remove());
   rainDrops=[];
+  barrelPosition = 50;
+  barrel.style.left = '50%';
 }
 
 /* --- Recycling Quiz --- */
@@ -434,30 +467,70 @@ const recyclingItems=[
   {item:'Pizza box without food', recycle:true, reason:'Clean cardboard is recyclable.'}
 ];
 
-let recycleIndex=0;
+let recycleIndex = 0;
+let correctAnswers = 0;
+let quizCompleted = false;
 
 function showRecycleQuestion(){
   if(recycleIndex>=recyclingItems.length){
-    document.getElementById('recycleQuestion').textContent='Quiz complete!';
+    // Quiz completed
+    quizCompleted = true;
+    document.getElementById('recycleQuestion').textContent='Quiz Complete!';
+    document.getElementById('quizProgress').style.display = 'none';
+    document.getElementById('quizButtons').style.display = 'none';
     document.getElementById('feedback').textContent='';
     document.getElementById('continueBtn').style.display='none';
+    
+    // Show final score
+    const scorePercentage = Math.round((correctAnswers / recyclingItems.length) * 100);
+    document.getElementById('quizScore').textContent = `Your Score: ${correctAnswers}/${recyclingItems.length} (${scorePercentage}%)`;
+    document.getElementById('quizScore').style.display = 'block';
     return;
   }
+  
+  // Reset button states
+  document.querySelectorAll('#quizButtons button').forEach(btn => {
+    btn.disabled = false;
+  });
+  
+  document.getElementById('quizProgress').textContent = `Question ${recycleIndex+1} of ${recyclingItems.length}`;
   document.getElementById('recycleQuestion').textContent=recyclingItems[recycleIndex].item;
   document.getElementById('feedback').textContent='';
   document.getElementById('continueBtn').style.display='none';
+  document.getElementById('quizScore').style.display = 'none';
 }
 
 function answerRecycle(choice){
+  // Disable buttons after answering
+  document.querySelectorAll('#quizButtons button').forEach(btn => {
+    btn.disabled = true;
+  });
+  
   const correct=recyclingItems[recycleIndex].recycle;
   const reason=recyclingItems[recycleIndex].reason;
-  if(choice===correct) document.getElementById('feedback').textContent='Correct!';
-  else document.getElementById('feedback').textContent='Wrong! '+reason;
+  
+  if(choice===correct) {
+    document.getElementById('feedback').textContent='Correct!';
+    correctAnswers++;
+  } else {
+    document.getElementById('feedback').textContent='Wrong! '+reason;
+  }
+  
   document.getElementById('continueBtn').style.display='inline-block';
 }
 
 function nextRecycleQuestion(){
   recycleIndex++;
+  showRecycleQuestion();
+}
+
+function resetRecyclingQuiz() {
+  recycleIndex = 0;
+  correctAnswers = 0;
+  quizCompleted = false;
+  document.getElementById('quizButtons').style.display = 'block';
+  document.getElementById('quizProgress').style.display = 'block';
+  document.getElementById('quizScore').style.display = 'none';
   showRecycleQuestion();
 }
 
