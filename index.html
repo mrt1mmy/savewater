@@ -72,6 +72,69 @@
   .quiz-progress { font-size: 16px; margin-bottom: 10px; color: #666; }
   .quiz-score { font-size: 22px; font-weight: bold; margin: 15px 0; color: #00bfff; }
 
+  /* Welcome Modal Styles */
+  .welcome-modal {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.85);
+    z-index: 200;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.5s ease-out;
+  }
+  .welcome-content {
+    background-color: white;
+    padding: 30px;
+    border-radius: 20px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    animation: slideUp 0.5s ease-out;
+  }
+  .welcome-content h2 {
+    color: #00bfff;
+    margin-top: 0;
+    font-size: 28px;
+  }
+  .welcome-content h3 {
+    color: #009acd;
+    margin: 20px 0 10px 0;
+  }
+  .welcome-content p {
+    line-height: 1.6;
+    margin-bottom: 15px;
+    font-size: 16px;
+  }
+  .welcome-content ul {
+    text-align: left;
+    margin: 15px 20px;
+    padding-left: 20px;
+  }
+  .welcome-content li {
+    margin-bottom: 8px;
+    line-height: 1.5;
+  }
+  .close-welcome-btn {
+    background-color: #00bfff;
+    color: white;
+    padding: 12px 25px;
+    font-size: 18px;
+    border-radius: 10px;
+    margin-top: 20px;
+    cursor: pointer;
+    border: none;
+    font-weight: bold;
+  }
+  .close-welcome-btn:hover {
+    background-color: #009acd;
+  }
+  
   /* Info Modal Styles */
   .info-modal {
     display: none;
@@ -149,12 +212,61 @@
   .info-button:hover {
     background-color: #5a6268;
   }
+  
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 </style>
 </head>
 <body>
 
+<!-- Welcome Modal -->
+<div id="welcomeModal" class="welcome-modal">
+  <div class="welcome-content">
+    <h2>🌍 Protect Our Watersheds!</h2>
+    
+    <p>Welcome to our environmental awareness games! Before you start playing, let's talk about why watershed protection matters.</p>
+    
+    <h3>What is a Watershed?</h3>
+    <p>A watershed is an area of land where all water drains to a common point - like a river, lake, or ocean. Everything that happens on the land affects the water quality downstream.</p>
+    
+    <h3>Why Watersheds Matter:</h3>
+    <ul>
+      <li><strong>Drinking Water:</strong> Watersheds provide clean drinking water for communities</li>
+      <li><strong>Wildlife Habitat:</strong> Healthy watersheds support diverse ecosystems</li>
+      <li><strong>Flood Control:</strong> Proper watershed management reduces flooding risks</li>
+      <li><strong>Water Quality:</strong> Healthy watersheds mean cleaner rivers, lakes, and oceans</li>
+      <li><strong>Recreation:</strong> Clean water supports fishing, swimming, and boating</li>
+    </ul>
+    
+    <h3>How These Games Help:</h3>
+    <p>Each game teaches simple habits that protect our watersheds:</p>
+    <ul>
+      <li><strong>Save Water Game:</strong> Learn water conservation to reduce strain on water systems</li>
+      <li><strong>Rain Barrel Game:</strong> Understand rainwater harvesting to reduce runoff pollution</li>
+      <li><strong>Recycling Quiz:</strong> Learn proper recycling to prevent waste from entering waterways</li>
+    </ul>
+    
+    <p><strong>Remember:</strong> Every drop counts! Small actions add up to create big change for our watersheds.</p>
+    
+    <button class="close-welcome-btn" onclick="closeWelcomeModal()">Let's Play! 🎮</button>
+  </div>
+</div>
+
 <!-- Home Screen -->
-<div id="homeScreen" class="screen active">
+<div id="homeScreen" class="screen">
   <h1>Mini Games Collection</h1>
   
   <div class="game-button-container">
@@ -236,6 +348,9 @@
     
     <h3>Why This Helps the Environment</h3>
     <p>Turning off the tap while brushing teeth can save up to 8 gallons of water per day! This simple habit conserves freshwater resources and reduces the energy needed to treat and pump water.</p>
+    
+    <h3>Watershed Connection</h3>
+    <p>Water conservation reduces the amount of water withdrawn from rivers and aquifers, helping maintain healthy water levels in our watersheds for wildlife and ecosystems.</p>
   </div>
 </div>
 
@@ -249,6 +364,9 @@
     
     <h3>Why This Helps the Environment</h3>
     <p>Rain barrels collect rainwater that would otherwise run off into storm drains. This reduces water pollution from runoff and conserves treated drinking water for outdoor use. A single rain barrel can save about 1,300 gallons of water during peak summer months!</p>
+    
+    <h3>Watershed Connection</h3>
+    <p>Rainwater harvesting reduces stormwater runoff, which carries pollutants from streets into our waterways. This helps keep our watersheds clean and reduces erosion.</p>
   </div>
 </div>
 
@@ -262,10 +380,25 @@
     
     <h3>Why This Helps the Environment</h3>
     <p>Proper recycling reduces landfill waste, conserves natural resources, saves energy, and reduces pollution. When we recycle correctly, we help create a circular economy where materials are reused instead of discarded.</p>
+    
+    <h3>Watershed Connection</h3>
+    <p>Proper recycling prevents waste from entering waterways through runoff or improper disposal. It also reduces the need for new materials, which decreases mining and manufacturing pollution that can contaminate watersheds.</p>
   </div>
 </div>
 
 <script>
+/* Welcome Modal */
+function closeWelcomeModal() {
+  document.getElementById('welcomeModal').style.display = 'none';
+  document.getElementById('homeScreen').classList.add('active');
+}
+
+// Show welcome modal on page load
+window.addEventListener('load', function() {
+  document.getElementById('welcomeModal').style.display = 'flex';
+  document.getElementById('homeScreen').classList.remove('active');
+});
+
 /* Navigation with auto-reset */
 function showGame(gameId) {
   // Auto-reset all games when leaving
